@@ -57,26 +57,26 @@ function saveUrlMapping(mapping)
 
 app.post("/api/shorturl", function(req, res) 
 {
-  var url = req.body.url;
+  var enteredUrl = req.body.url;
   
   // This Regex will test for HTTP!!
   var regex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
-  var isValid = regex.test(url);
+  var isValid = regex.test(enteredUrl);
 
   if (!isValid)
   {
-    return res.json({ error: 'invalid url' })
+    return res.json({ error: 'invalid syntax URL!!! - http missing probably' })
   }
 
   // these variables can be called anything, (they are actually functions that have been passed - ie callback functions)
   var dnsLookup = new Promise(function(resolve, reject) 
   {
-    var result = url.replace(/(^\w+:|^)\/\//, "");
+    var result = enteredUrl.replace(/(^\w+:|^)\/\//, "");
     
-    dns.lookup(result, function(err, addresses, family) 
+    dns.lookup(result, function(err, iPaddresses, family) 
     {
       if (err) reject(err);
-      resolve(addresses);
+      resolve(iPaddresses);
     });
 
     // testing
@@ -85,11 +85,11 @@ app.post("/api/shorturl", function(req, res)
   });
     
   dnsLookup // always passes
-  .then(function(previousThnReturn) 
+  .then(function(iPaddresses) 
   {
-    console.log(22, previousThnReturn);
+    console.log(22, iPaddresses);
     
-    var t = checkIfExists(url); // returns a new promise, if resolve is filled the .then will run, if .reject is filled .catch will run
+    var t = checkIfExists(enteredUrl); // returns a new promise, if resolve is filled the .then will run, if .reject is filled .catch will run
     console.log(34434, t);
     return t;
 
@@ -102,7 +102,7 @@ app.post("/api/shorturl", function(req, res)
       console.log(2121212, previousThnReturn)
       //return res.redirect(previousThnReturn.original_url);
       
-      return res.json({ original_url: previousThnReturn.original_url, short_url : previousThnReturn.short_url});
+      return res.json({ original_url : previousThnReturn.original_url, short_url : previousThnReturn.short_url});
       // throw new BreakSignal({});
       //return 1;
 
@@ -111,7 +111,7 @@ app.post("/api/shorturl", function(req, res)
     {
       console.log(4444444, "this is a new url, attempting to save");
       var shortUrl = shorterUrl();
-      var urlMapping = new UrlMapping({ original_url: url,short_url: shortUrl });
+      var urlMapping = new UrlMapping({ original_url: enteredUrl,short_url: shortUrl });
       return saveUrlMapping(urlMapping); // returns a new promise, if resolve is filled the .then will run, if .reject is filled .catch will run 
     }
   })
@@ -121,7 +121,7 @@ app.post("/api/shorturl", function(req, res)
     if (savedURL.short_url)
     {
       console.log(1111, savedURL.short_url)
-      return res.json({ original_url : url, short_url : savedURL.short_url});
+      return res.json({ original_url : enteredUrl, short_url : savedURL.short_url});
     }
     //return 1;
 
@@ -139,9 +139,10 @@ app.post("/api/shorturl", function(req, res)
     // console.log(777777);
     // return res.json({ error: reject.toString() });
     // }
-    var bleh = "is this resolve also filled from a return from the .catch to the additional .then !!??? - YES it was";
+    // var bleh = "is this resolve also filled from a return from the .catch to the additional .then !!??? - YES it was";
     //return bleh;
-    if (reject.code === 'ENOTFOUND'){return res.json({ error: 'invalid url' });}; // prob goo to make this a retrun aswell, seems to work without but i noticed it hanging at 1 point
+
+    if (reject.code === 'ENOTFOUND'){return res.json({ error: 'NOT a website' });}; // prob got to make this a retrun aswell, seems to work without but i noticed it hanging at 1 point
 
   });
   // .then(function(resolve) // record saved, "If save() succeeds, the promise resolves to the document that was saved"
