@@ -12,11 +12,14 @@ var dns = require("dns");
 
 const mySecret = process.env['MONGO_URI']
 mongoose.connect(mySecret, { useNewUrlParser: true, useUnifiedTopology: true });
-var urlMappingSchema = new mongoose.Schema({
-  original_url: String,
-  short_url: String
+
+// checking connection
+const db = mongoose.connection;
+db.on("error", console.error.bind(console, "connection error:"));
+db.once("open", function () {
+  console.log("Database connected");
 });
-var UrlMapping = mongoose.model("UrlMapping", urlMappingSchema);
+
 app.use(cors());
 app.use("/", bodyParser.urlencoded({extended: false}));
 app.use("/public", express.static(process.cwd() + "/public"));
@@ -30,6 +33,11 @@ app.get("/api/hello", function(req, res) {
 });
 
 
+var urlMappingSchema = new mongoose.Schema({
+  original_url: String,
+  short_url: String
+});
+var UrlMapping = mongoose.model("UrlMapping", urlMappingSchema);
 
 
 function checkIfExists(original_url) 
