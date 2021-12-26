@@ -65,8 +65,10 @@ app.post("/api/shorturl", function(req, res)
 
   if (!isValid)
   {
-    return res.json({ error: 'invalid syntax URL!!! - http missing probably' })
+    console.log("syntax URL!!! - http missing probably");
+    return res.json({ error: 'invalid url' });
   }
+
 
   // these variables can be called anything, (they are actually functions that have been passed - ie callback functions)
   var dnsLookup = new Promise(function(resolve, reject) 
@@ -142,7 +144,16 @@ app.post("/api/shorturl", function(req, res)
     // var bleh = "is this resolve also filled from a return from the .catch to the additional .then !!??? - YES it was";
     //return bleh;
 
-    if (reject.code === 'ENOTFOUND' || reject.code === "EAI_AGAIN"){return res.json({ error: 'NOT a website' });}; // prob got to make this a retrun aswell, seems to work without but i noticed it hanging at 1 point
+    //if (reject.code === 'ENOTFOUND' || reject.code === "EAI_AGAIN"){return res.json({ error: 'NOT a website' });}; // prob got to make this a retrun aswell, seems to work without but i noticed it hanging at 1 point
+
+    
+    if (reject.code){
+      console.log(555511111, reject.code);
+      console.log("'NOT a website' ");
+
+      return res.json({ error: 'invalid url' });
+      }; // prob got to make this a retrun aswell, seems to work without but i noticed it hanging at 1 point
+
 
   });
   // .then(function(resolve) // record saved, "If save() succeeds, the promise resolves to the document that was saved"
@@ -204,7 +215,7 @@ function redirectToOriginalUrl(short_url)
       else if (doc === null)
       {
         console.log(64, err, doc);
-        err = "URL not found";
+        err = "URL not found in db";
         return reject(err);
       }
       else if (doc)
