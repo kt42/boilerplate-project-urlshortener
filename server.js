@@ -25,7 +25,8 @@ app.get("/", function(req, res) {
   res.sendFile(process.cwd() + "/views/index.html");
 });
 app.get("/api/hello", function(req, res) {
-  res.json({ greeting: "hello API" });
+  // res.json({ greeting: "hello API" });
+  res.redirect("/");
 });
 
 
@@ -54,9 +55,18 @@ function saveUrlMapping(mapping)
   });
 }
 
-app.post("/api/shorturl/new", function(req, res) 
+app.post("/api/shorturl", function(req, res) 
 {
   var url = req.body.url;
+  
+  // This Regex will test for HTTP!!
+  var regex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
+  var isValid = regex.test(url);
+
+  if (!isValid)
+  {
+    return res.json({ error: 'invalid url' })
+  }
 
   // these variables can be called anything, (they are actually functions that have been passed - ie callback functions)
   var dnsLookup = new Promise(function(resolve, reject) 
@@ -68,87 +78,70 @@ app.post("/api/shorturl/new", function(req, res)
       if (err) reject(err);
       resolve(addresses);
     });
-    
-    // if (url === "home"){
-    //   resolve("wil this write twice?????")
-    //   return res.json({ ok: "going home" });
-    // }
-
-    // console.log(90909, resolve, reject);
-    // setTimeout(function() 
-    // {
-    //     console.log("hello 3");
-    // }, 600)
-    //reject("also yes")
 
     // testing
     //resolve("yes");
     //reject("yes");
   });
     
-
-
   dnsLookup // always passes
-  .then(function(resolve, reject) 
+  .then(function(previousThnReturn) 
   {
-    console.log(11, resolve, reject);
-    //resolve("yes");
-    //return resolve; // always passes
-    //return resolve("565656")
-    setTimeout(function() 
-   {
-   		console.log("hello 4");
-   }, 200)
-   
-   return reject = "fsdfsdfg", resolve = "aaaaaaaaaa";
-  })
-  .then(function(previousThnReturn, reject) 
-  {
-    console.log(22, previousThnReturn, reject);
-    return checkIfExists(url); // returns a new promise, if resolve is filled the .then will run, if .reject is filled .catch will run
+    console.log(22, previousThnReturn);
+    
+    var t = checkIfExists(url); // returns a new promise, if resolve is filled the .then will run, if .reject is filled .catch will run
+    console.log(34434, t);
+    return t;
+
   })
   .then(function(previousThnReturn, reject) // no error retriving from db
   {
     console.log(33, previousThnReturn, reject);
-    if (previousThnReturn)
+    if (previousThnReturn) // "the url already exists in the db - provide it
     {
-      console.log(previousThnReturn)
-      res.json({ here: "the record already exists, here is the link" + previousThnReturn.short_url });
+      console.log(2121212, previousThnReturn)
+      //return res.redirect(previousThnReturn.original_url);
+      
+      return res.json({ "original_url": previousThnReturn.original_url, "short_url" : previousThnReturn.short_url});
       // throw new BreakSignal({});
       //return 1;
+
     }
     else
     {
-      // "this is a new url, attempting to save"
+      console.log(4444444, "this is a new url, attempting to save");
       var shortUrl = shorterUrl();
       var urlMapping = new UrlMapping({ original_url: url,short_url: shortUrl });
       return saveUrlMapping(urlMapping); // returns a new promise, if resolve is filled the .then will run, if .reject is filled .catch will run 
     }
   })
-  .then(function(previousThnReturn) // record saved, "If save() succeeds, the promise resolves to the document that was saved"
+  .then(function(savedURL) // record saved, "If save() succeeds, the promise resolves to the document that was saved"
   { 
-    console.log(9999999999999, previousThnReturn);
-    if (previousThnReturn.short_url)
+    console.log(999999, savedURL.short_url);
+    if (savedURL.short_url)
     {
-      console.log(previousThnReturn.short_url)
-      return res.json({ here: "Records saved successfully, here is the new shortened link" + previousThnReturn.short_url});
+      console.log(1111, savedURL.short_url)
+      return res.json({ "original_url" : url, "short_url" : savedURL.short_url});
     }
-    return 1;
+    //return 1;
+
   })  
   .catch(function(reject) // a reject has been returned by one of the promises, either the url already exists or the saving failed
   { // very INTERESTING - IF THERE is no "return" processed in any of the .then's above the .catch will also run
     console.log(5555555, reject);
+    //
     // if (reject.err){ // an error message exists from one of the callbacks
     //   return res.json({ error: reject.err });
     // }
     // else{ // some other error, i.e. syntax
       
+
     // console.log(777777);
     // return res.json({ error: reject.toString() });
     // }
     var bleh = "is this resolve also filled from a return from the .catch to the additional .then !!??? - YES it was";
     //return bleh;
-    res.json({"rejected": reject});
+    if (reject.code === 'ENOTFOUND'){return res.json({ error: 'invalid url' });}; // prob goo to make this a retrun aswell, seems to work without but i noticed it hanging at 1 point
 
   });
   // .then(function(resolve) // record saved, "If save() succeeds, the promise resolves to the document that was saved"
@@ -164,25 +157,65 @@ app.post("/api/shorturl/new", function(req, res)
 
 });
 
-app.get("/api/shorturl/:shortUrl", function(req, res) {
+
+// res.redirect("/api/redirect/" + "original_url");   /// Only way i can think to do it then:
+
+// app.get("/api/redirect/:fff", function(req, res) 
+// {
+//   console.log(req.params.fff);
+//   return res.redirect(req.params.fff);
+
+// });
+
+// DONT USE - Just CAUSES A MILLION REDIRECTS !!!!!!!!!!!
+// need to ask stack overflow how to handel; internal redirect failure
+
+app.get("/api/shorturl/:shortUrl", function(req, res) 
+{
+  
   var redirectPromise = redirectToOriginalUrl(req.params.shortUrl);
-  redirectPromise.then(function(original_url) {
-    return res.redirect(original_url);
-  });
-  redirectPromise.catch(function(reason) {
+
+  redirectPromise
+  .then(function(original_url) 
+  {
+    console.log(69, original_url);
+    res.redirect(original_url);
+    return;
+  })
+  .catch(function(reason) // If res fails here the catch will also trigger
+  {
+    console.log(433, reason);
     return res.json({ error: "see console for error" });
   });
 });
 
-function redirectToOriginalUrl(short_url) {
-  return new Promise(function(resolve, reject) {
-    UrlMapping.findOne({ short_url: short_url }, function(err, doc) {
-      if (err || doc === null) return reject(err);
-      else return resolve(doc.original_url);
+function redirectToOriginalUrl(short_url) 
+{
+  return new Promise(function(resolve, reject) 
+  {
+    UrlMapping.findOne({ short_url: short_url }, function(err, doc) 
+    {
+      if (err)
+      {
+        console.log(67, err);
+        return reject(err);
+      }
+      else if (doc === null)
+      {
+        console.log(64, err, doc);
+        err = "URL not foundddddddddddddddd";
+        return reject(err);
+      }
+      else if (doc)
+      {
+        console.log(68, err, doc); 
+        return resolve(doc.original_url);
+      }
+      else{
+        console.log("WTFFFFFFFF"); }
     });
   });
 }
-
 
 
 function shorterUrl() 
