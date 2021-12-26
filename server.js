@@ -60,13 +60,13 @@ app.post("/api/shorturl", function(req, res)
   var enteredUrl = req.body.url;
   
   // This Regex will test for HTTP!!
-  var regex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
-  var isValid = regex.test(enteredUrl);
+  // var regex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
+  // var isValid = regex.test(enteredUrl);
 
-  if (!isValid)
-  {
-    return res.json({ error: 'invalid syntax URL!!! - http missing probably' })
-  }
+  // if (!isValid)
+  // {
+  //   return res.json({ error: 'invalid syntax URL!!! - http missing probably' })
+  // }
 
   // these variables can be called anything, (they are actually functions that have been passed - ie callback functions)
   var dnsLookup = new Promise(function(resolve, reject) 
