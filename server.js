@@ -60,13 +60,13 @@ app.post("/api/shorturl", function(req, res)
   var enteredUrl = req.body.url;
   
   // This Regex will test for HTTP!!
-  // var regex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
-  // var isValid = regex.test(enteredUrl);
+  var regex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
+  var isValid = regex.test(enteredUrl);
 
-  // if (!isValid)
-  // {
-  //   return res.json({ error: 'invalid syntax URL!!! - http missing probably' })
-  // }
+  if (!isValid)
+  {
+    return res.json({ error: 'invalid syntax URL!!! - http missing probably' })
+  }
 
   // these variables can be called anything, (they are actually functions that have been passed - ie callback functions)
   var dnsLookup = new Promise(function(resolve, reject) 
@@ -102,7 +102,7 @@ app.post("/api/shorturl", function(req, res)
       console.log(2121212, previousThnReturn)
       //return res.redirect(previousThnReturn.original_url);
       
-      return res.json({ original_url : previousThnReturn.original_url, short_url : previousThnReturn.short_url});
+      return res.json({ original_url: previousThnReturn.original_url, short_url: previousThnReturn.short_url});
       // throw new BreakSignal({});
       //return 1;
 
@@ -111,7 +111,7 @@ app.post("/api/shorturl", function(req, res)
     {
       console.log(4444444, "this is a new url, attempting to save");
       var shortUrl = shorterUrl();
-      var urlMapping = new UrlMapping({ original_url: enteredUrl,short_url: shortUrl });
+      var urlMapping = new UrlMapping({ original_url: enteredUrl, short_url: shortUrl });
       return saveUrlMapping(urlMapping); // returns a new promise, if resolve is filled the .then will run, if .reject is filled .catch will run 
     }
   })
