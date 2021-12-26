@@ -142,7 +142,7 @@ app.post("/api/shorturl", function(req, res)
     // var bleh = "is this resolve also filled from a return from the .catch to the additional .then !!??? - YES it was";
     //return bleh;
 
-    if (reject.code === 'ENOTFOUND'){return res.json({ error: 'NOT a website' });}; // prob got to make this a retrun aswell, seems to work without but i noticed it hanging at 1 point
+    if (reject.code === 'ENOTFOUND' || reject.code === "EAI_AGAIN"){return res.json({ error: 'NOT a website' });}; // prob got to make this a retrun aswell, seems to work without but i noticed it hanging at 1 point
 
   });
   // .then(function(resolve) // record saved, "If save() succeeds, the promise resolves to the document that was saved"
