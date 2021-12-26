@@ -21,23 +21,40 @@ db.once("open", function () {
 });
 
 app.use(cors());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 app.use("/", bodyParser.urlencoded({extended: false}));
 app.use("/public", express.static(process.cwd() + "/public"));
 
 app.get("/", function(req, res) {
   res.sendFile(process.cwd() + "/views/index.html");
 });
-app.get("/api/hello", function(req, res) {
-  // res.json({ greeting: "hello API" });
-  res.redirect("/");
-});
+
+// app.get("/api/hello", function(req, res) {
+//   // res.json({ greeting: "hello API" });
+//   res.redirect("/");
+// });
 
 
-var urlMappingSchema = new mongoose.Schema({
+const urlMappingSchema = new mongoose.Schema({
   original_url: String,
   short_url: String
 });
+
 var UrlMapping = mongoose.model("UrlMapping", urlMappingSchema);
+
+
+function shorterUrl() 
+{
+  var text = "";
+  var possible =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  for (var i = 0; i < 5; i++)
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+  return text;
+}
 
 
 function checkIfExists(original_url) 
@@ -68,22 +85,26 @@ app.post("/api/shorturl", function(req, res)
   var enteredUrl = req.body.url;
   
   // This Regex will test for HTTP!!
-  var regex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
-  var isValid = regex.test(enteredUrl);
+  // var regex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
+  // var isValid = regex.test(enteredUrl);
 
-  if (!isValid)
-  {
-    console.log("syntax URL!!! - http missing probably");
-    return res.json({ error: 'invalid url' });
-  }
+  // if (!isValid)
+  // {
+  //   console.log("syntax URL!!! - http missing probably");
+  //   return res.json({ error: 'invalid url' });
+  // }
 
 
   // these variables can be called anything, (they are actually functions that have been passed - ie callback functions)
   var dnsLookup = new Promise(function(resolve, reject) 
   {
-    var result = enteredUrl.replace(/(^\w+:|^)\/\//, "");
+    //var result = enteredUrl.replace(/(^\w+:|^)\/\//, "");
     
-    dns.lookup(result, function(err, iPaddresses, family) 
+    const urlDomain = urlParam.match(/^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)/igm);
+    const lookupParam = urlDomain[0].replace(/^https?:\/\//i, "");
+  
+
+    dns.lookup(lookupParam, function(err, iPaddresses, family) 
     {
       if (err) reject(err);
       resolve(iPaddresses);
@@ -238,17 +259,7 @@ function redirectToOriginalUrl(short_url)
 }
 
 
-function shorterUrl() 
-{
-  var text = "";
-  var possible =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-  for (var i = 0; i < 5; i++)
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-  return text;
-}
 
 
 const port = process.env.PORT || 3009;
