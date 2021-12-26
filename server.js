@@ -102,7 +102,7 @@ app.post("/api/shorturl", function(req, res)
       console.log(2121212, previousThnReturn)
       //return res.redirect(previousThnReturn.original_url);
       
-      return res.json({ "original_url": previousThnReturn.original_url, "short_url" : previousThnReturn.short_url});
+      return res.json({ original_url: previousThnReturn.original_url, short_url : previousThnReturn.short_url});
       // throw new BreakSignal({});
       //return 1;
 
@@ -121,7 +121,7 @@ app.post("/api/shorturl", function(req, res)
     if (savedURL.short_url)
     {
       console.log(1111, savedURL.short_url)
-      return res.json({ "original_url" : url, "short_url" : savedURL.short_url});
+      return res.json({ original_url : url, short_url : savedURL.short_url});
     }
     //return 1;
 
@@ -203,7 +203,7 @@ function redirectToOriginalUrl(short_url)
       else if (doc === null)
       {
         console.log(64, err, doc);
-        err = "URL not foundddddddddddddddd";
+        err = "URL not found";
         return reject(err);
       }
       else if (doc)
