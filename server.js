@@ -82,8 +82,9 @@ function saveUrlMapping(mapping)
 
 app.post("/api/shorturl", function(req, res) 
 {
-  var enteredUrl = req.body.url;
-  
+  //var enteredUrl = req.body.url;
+  const urlParam = req.body.url;
+
   // This Regex will test for HTTP!!
   // var regex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/;
   // var isValid = regex.test(enteredUrl);
@@ -110,12 +111,13 @@ app.post("/api/shorturl", function(req, res)
       resolve(iPaddresses);
     });
 
+
     // testing
     //resolve("yes");
     //reject("yes");
   });
     
-  dnsLookup // always passes
+  dnsLookup 
   .then(function(iPaddresses) 
   {
     console.log(22, iPaddresses);
@@ -158,7 +160,7 @@ app.post("/api/shorturl", function(req, res)
 
   })  
   .catch(function(reject) // a reject has been returned by one of the promises, either the url already exists or the saving failed
-  { // very INTERESTING - IF THERE is no "return" processed in any of the .then's above the .catch will also run
+  { // very INTERESTING - IF THERE is no "return" processed in any of the .then's above the .catch will also run -- ACTUALLY NOT NECESSICERIALY
     console.log(5555555, reject);
     //
     // if (reject.err){ // an error message exists from one of the callbacks
@@ -223,7 +225,7 @@ app.get("/api/shorturl/:shortUrl", function(req, res)
     res.redirect(original_url);
     return;
   })
-  .catch(function(reason) // If res fails here the catch will also trigger
+  .catch(function(reason) // If res fails here the catch will also trigger // OR IF THERE'S SYNTAX ERRORS OR DB ERRORS THE ENTIRE APP WONT CRASH AS HAPPENED MULTIPLE TIMES WITH THE OTHER ONE THAT USES THE OTHER DB CALKL THING
   {
     console.log(433, reason);
     return res.json({ error: "see console for error" });

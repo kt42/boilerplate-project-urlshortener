@@ -54,6 +54,9 @@ const shortUrlSchema = new Schema({
 
 const ShortUrl = mongoose.model("ShortUrl", shortUrlSchema);
 
+
+
+
 // function to generate random shorturl
 function makeid(length) {
   var result = "";
@@ -68,14 +71,19 @@ function makeid(length) {
 
 // url shortener api
 app.post("/api/shorturl", function (req, res) {
+  
   const urlParam = req.body.url;
+  
   const urlDomain = urlParam.match(/^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)/igm);
   const lookupParam = urlDomain[0].replace(/^https?:\/\//i, "");
 
-  dns.lookup(lookupParam, (err, addresses) => {
-    if (err) {
+  dns.lookup(lookupParam, (err, addresses) => 
+  {
+    if (err) 
+    {
       res.json({ error: 'invalid url' });
-    } else {
+    } 
+    else {
       const newUrl = new ShortUrl({
         originalUrl: urlParam,
         shortUrl: makeid(8),
